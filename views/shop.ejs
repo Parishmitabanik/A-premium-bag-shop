@@ -50,13 +50,16 @@
     <div class="w-full md:w-[75%] grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <% products.forEach(function(product){ %>
             <div class="w-full">
-                <div class="w-full h-40 sm:h-52 flex items-center justify-center bg-[<%= product.bgcolor %>]">
-                    <img class="h-[9rem] sm:h-[12rem] object-contain"
-                         src="data:image/jpeg;base64,<%= product.image.toString('base64') %>"
-                         alt="">
-                </div>
+                <!-- Clickable image -->
+                <a href="/product/<%= product._id %>">
+                    <div class="w-full h-40 sm:h-52 flex items-center justify-center bg-[<%= product.bgcolor %>] hover:opacity-90 transition cursor-pointer">
+                        <img class="h-[9rem] sm:h-[12rem] object-contain"
+                             src="data:image/jpeg;base64,<%= product.image.toString('base64') %>"
+                             alt="<%= product.name %>">
+                    </div>
+                </a>
                 <div class="flex justify-between bg-[<%= product.panelcolor %>] items-center px-3 py-3 text-[<%= product.textcolor %>]">
-                    <div class="flex-1 min-w-0 mr-2">
+                    <a href="/product/<%= product._id %>" class="flex-1 min-w-0 mr-2 hover:underline">
                         <h3 class="text-sm font-medium truncate"><%= product.name %></h3>
                         <div class="flex items-center gap-1 flex-wrap">
                             <h4 class="text-sm">₹ <%= product.price %></h4>
@@ -66,7 +69,7 @@
                                 </span>
                             <% } %>
                         </div>
-                    </div>
+                    </a>
                     <a class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full bg-white"
                        href="/addtocart/<%= product._id %>">
                         <i class="ri-add-line text-black"></i>
