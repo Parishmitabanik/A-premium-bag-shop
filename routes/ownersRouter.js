@@ -36,7 +36,8 @@ router.post("/updateproduct/:id", isOwnerLoggedIn, upload.single("image"), async
 });
 router.get("/allproducts", isOwnerLoggedIn, async function(req, res) {
     let products = await productModel.find();
-    res.render("admin", { products, isOwner: true });
+    let success = req.flash("success");  // add this line
+    res.render("admin", { products, isOwner: true, success });  // add success here
 });
 
 router.get("/deleteproduct/:id", isOwnerLoggedIn, async function(req, res) {
