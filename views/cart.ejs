@@ -1,0 +1,121 @@
+<%- include('./partials/header') %>
+
+<div class="w-full min-h-screen px-20 py-20">
+
+    <% if(user.cart.length === 0){ %>
+        <div class="text-center mt-20">
+            <h2 class="text-2xl font-semibold">Your cart is empty</h2>
+            <a href="/shop" class="mt-4 inline-block text-blue-600 hover:underline">Continue Shopping</a>
+        </div>
+    <% } else { %>
+
+        <div class="flex gap-10 items-start">
+
+            <!-- LEFT: Cart Items -->
+            <div class="w-[55%] flex flex-col gap-6">
+                <h2 class="text-2xl font-semibold">My Cart (<%= user.cart.length %> item<%= user.cart.length > 1 ? 's' : '' %>)</h2>
+
+                <% user.cart.forEach(function(cartItem){ %>
+                    <% let product = cartItem.product; %>
+                    <% let qty = cartItem.quantity; %>
+                    <% let discountedPrice = product.price - (product.discount / 100) * product.price; %>
+                    <% let itemTotal = discountedPrice * qty; %>
+
+                    <div class="w-full rounded-md overflow-hidden shadow-sm border border-gray-100">
+                        <!-- Product Image -->
+                        <div class="w-full flex justify-center items-center h-52 bg-[<%= product.bgcolor %>]">
+                            <img class="h-[11rem]"
+                                 src="data:image/jpeg;base64,<%= product.image.toString('base64') %>"
+                                 alt="<%= product.name %>">
+                        </div>
+
+                        <!-- Product Info + Quantity Controls -->
+                        <div class="flex items-center justify-between px-5 py-4 bg-[<%= product.panelcolor %>] text-[<%= product.textcolor %>]">
+                            <div>
+                                <h3 class="text-xl font-medium"><%= product.name %></h3>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-lg">₹ <%= discountedPrice.toFixed(0) %></span>
+                                    <% if(product.discount > 0){ %>
+                                        <span class="text-sm line-through opacity-60">₹ <%= product.price %></span>
+                                        <span class="px-2 py-0.5 text-xs rounded bg-red-200 text-red-700">
+                                            -<%= product.discount %>%
+                                        </span>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center gap-2">
+                                <a href="/cart/decrease/<%= product._id %>"
+                                   class="w-8 h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
+                                    <i class="ri-subtract-line text-black"></i>
+                                </a>
+                                <div class="px-3 py-1 rounded-md bg-white text-black font-semibold min-w-[2rem] text-center">
+                                    <%= String(qty).padStart(2, '0') %>
+                                </div>
+                                <a href="/cart/increase/<%= product._id %>"
+                                   class="w-8 h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
+                                    <i class="ri-add-line text-black"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Item Net Total -->
+                        <div class="flex text-white items-center justify-between px-5 py-3 bg-[<%= product.textcolor %>]">
+                            <h4 class="text-lg">Item Total</h4>
+                            <h2 class="text-lg font-semibold">₹ <%= itemTotal.toFixed(0) %></h2>
+                        </div>
+                    </div>
+
+                <% }) %>
+            </div>
+
+            <!-- RIGHT: Price Breakdown -->
+            <div class="w-[45%] sticky top-10">
+                <h3 class="text-xl font-semibold">Price Breakdown</h3>
+                <div class="px-4 mt-5 flex flex-col gap-3">
+
+                    <% let totalMRP = 0; %>
+                    <% let totalDiscount = 0; %>
+                    <% user.cart.forEach(function(cartItem){ %>
+                        <% totalMRP += cartItem.product.price * cartItem.quantity; %>
+                        <% totalDiscount += (cartItem.product.discount / 100) * cartItem.product.price * cartItem.quantity; %>
+                    <% }) %>
+
+                    <div class="flex justify-between">
+                        <h4 class="text-gray-600">Total MRP</h4>
+                        <h4>₹ <%= totalMRP.toFixed(0) %></h4>
+                    </div>
+                    <div class="flex justify-between">
+                        <h4 class="text-gray-600">Discount on MRP</h4>
+                        <h4 class="text-green-600">- ₹ <%= totalDiscount.toFixed(0) %></h4>
+                    </div>
+                    <div class="flex justify-between">
+                        <h4 class="text-gray-600">Platform Fee</h4>
+                        <h4>₹ 20</h4>
+                    </div>
+                    <div class="flex justify-between">
+                        <h4 class="text-gray-600">Shipping Fee</h4>
+                        <h4 class="text-green-600">FREE</h4>
+                    </div>
+
+                    <div class="w-full h-[1px] bg-gray-300 my-3"></div>
+
+                    <div class="flex justify-between">
+                        <h3 class="text-xl font-semibold">Total Amount</h3>
+                        <h3 class="text-xl font-bold text-green-600">₹ <%= bill.toFixed(0) %></h3>
+                    </div>
+
+                    <a href="/checkout"
+                        class="mt-4 w-full block text-center bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-lg font-semibold text-lg">
+                            Place Order
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    <% } %>
+</div>
+
+<%- include('./partials/footer') %>

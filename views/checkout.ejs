@@ -1,0 +1,150 @@
+<%- include('./partials/header') %>
+
+<div class="w-full min-h-screen px-20 py-16">
+    <h2 class="text-2xl font-semibold mb-8">Checkout</h2>
+
+    <div class="flex gap-10">
+        <!-- Left: Address + Payment Form -->
+        <div class="w-[60%]">
+            <form action="/checkout" method="post">
+
+                <!-- Delivery Address -->
+                <div class="bg-white shadow rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">📦 Delivery Address</h3>
+                    <div class="flex flex-col gap-3">
+                        <input type="text" name="fullname" placeholder="Full Name" required
+                            class="border p-2 rounded w-full bg-zinc-50">
+                        <input type="text" name="phone" placeholder="Phone Number" required
+                            class="border p-2 rounded w-full bg-zinc-50">
+                        <input type="text" name="address" placeholder="House No, Street, Area" required
+                            class="border p-2 rounded w-full bg-zinc-50">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" name="city" placeholder="City" required
+                                class="border p-2 rounded w-full bg-zinc-50">
+                            <input type="text" name="state" placeholder="State" required
+                                class="border p-2 rounded w-full bg-zinc-50">
+                        </div>
+                        <input type="text" name="pincode" placeholder="Pincode" required
+                            class="border p-2 rounded w-full bg-zinc-50">
+                    </div>
+                </div>
+
+                <!-- Payment Mode -->
+                <div class="bg-white shadow rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">💳 Payment Mode</h3>
+                    <div class="flex flex-col gap-3">
+
+                        <!-- COD -->
+                        <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
+                            onclick="showPaymentFields('cod')">
+                            <input type="radio" name="paymentmode" value="cod" required>
+                            <div>
+                                <p class="font-medium">Cash on Delivery</p>
+                                <p class="text-sm text-gray-400">Pay when your order arrives</p>
+                            </div>
+                        </label>
+
+                        <!-- UPI -->
+                        <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
+                            onclick="showPaymentFields('upi')">
+                            <input type="radio" name="paymentmode" value="upi" required>
+                            <div>
+                                <p class="font-medium">UPI</p>
+                                <p class="text-sm text-gray-400">GPay, PhonePe, Paytm, etc.</p>
+                            </div>
+                        </label>
+                        <div id="upi-fields" class="hidden px-4 pb-3">
+                            <input type="text" name="upiid" placeholder="Enter UPI ID (e.g. name@upi)"
+                                class="border p-2 rounded w-full bg-zinc-50">
+                        </div>
+
+                        <!-- Card -->
+                        <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
+                            onclick="showPaymentFields('card')">
+                            <input type="radio" name="paymentmode" value="card" required>
+                            <div>
+                                <p class="font-medium">Credit / Debit Card</p>
+                                <p class="text-sm text-gray-400">Visa, Mastercard, Rupay</p>
+                            </div>
+                        </label>
+                        <div id="card-fields" class="hidden px-4 pb-3 flex flex-col gap-2">
+                            <input type="text" name="cardnumber" placeholder="Card Number (16 digits)"
+                                maxlength="16" class="border p-2 rounded w-full bg-zinc-50">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" name="cardexpiry" placeholder="MM/YY"
+                                    class="border p-2 rounded w-full bg-zinc-50">
+                                <input type="text" name="cardcvv" placeholder="CVV"
+                                    maxlength="3" class="border p-2 rounded w-full bg-zinc-50">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-lg font-semibold rounded-lg">
+                    Place Order
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="w-[40%]">
+            <div class="bg-white shadow rounded-lg p-6 sticky top-10">
+                <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
+                <div class="flex flex-col gap-3 mb-4">
+                    <% user.cart.forEach(function(cartItem){ %>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded overflow-hidden flex items-center justify-center"
+                                     style="background-color: <%= cartItem.product.bgcolor %>">
+                                    <img class="h-full object-contain"
+                                         src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
+                                         alt="">
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium"><%= cartItem.product.name %></p>
+                                    <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
+                                </div>
+                            </div>
+                            <p class="text-sm font-semibold">₹ <%= (cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity %></p>
+                        </div>
+                    <% }) %>
+                </div>
+                <div class="border-t pt-4 flex flex-col gap-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Total MRP</span>
+                        <span>₹ <%= totalMRP %></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Discount</span>
+                        <span class="text-green-600">- ₹ <%= totalDiscount %></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Platform Fee</span>
+                        <span>₹ 20</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Shipping</span>
+                        <span class="text-green-600">FREE</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-base mt-2 border-t pt-2">
+                        <span>Total Amount</span>
+                        <span class="text-green-600">₹ <%= bill %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showPaymentFields(mode) {
+        document.getElementById('upi-fields').classList.add('hidden');
+        document.getElementById('card-fields').classList.add('hidden');
+        if (mode === 'upi') document.getElementById('upi-fields').classList.remove('hidden');
+        if (mode === 'card') document.getElementById('card-fields').classList.remove('hidden');
+    }
+</script>
+
+<%- include('./partials/footer') %>

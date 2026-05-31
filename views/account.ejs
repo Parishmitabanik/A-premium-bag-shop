@@ -1,0 +1,136 @@
+<%- include('./partials/header') %>
+
+<div class="w-full min-h-screen px-20 py-16">
+    <h2 class="text-2xl font-semibold mb-8">My Account</h2>
+
+    <div class="flex gap-10 items-start">
+
+        <!-- Left: Profile Card -->
+        <div class="w-[30%]">
+            <div class="bg-white shadow rounded-xl p-8 flex flex-col items-center text-center">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="ri-user-3-fill text-blue-500 text-4xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold"><%= user.fullname %></h3>
+                <p class="text-gray-400 text-sm mt-1"><%= user.email %></p>
+                <% if(user.contact){ %>
+                    <p class="text-gray-400 text-sm mt-1">📞 <%= user.contact %></p>
+                <% } %>
+
+                <div class="w-full border-t mt-6 pt-6 flex flex-col gap-3">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Total Orders</span>
+                        <span class="font-semibold"><%= user.orders.length %></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Cart Items</span>
+                        <span class="font-semibold"><%= user.cart.length %></span>
+                    </div>
+                </div>
+
+                <a href="/cart"
+                   class="mt-6 w-full block text-center py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">
+                    Go to Cart
+                </a>
+                <a href="/users/logout"
+                   class="mt-3 w-full block text-center py-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg text-sm font-medium">
+                    Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Right: Order History -->
+        <div class="w-[70%]">
+            <h3 class="text-xl font-semibold mb-4">Order History</h3>
+
+            <% if(user.orders.length === 0){ %>
+                <div class="bg-white shadow rounded-xl p-12 text-center">
+                    <i class="ri-shopping-bag-line text-gray-300 text-6xl"></i>
+                    <p class="text-gray-400 mt-4 text-lg">No orders yet</p>
+                    <a href="/shop"
+                       class="mt-4 inline-block px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-full text-sm font-medium">
+                        Start Shopping
+                    </a>
+                </div>
+            <% } else { %>
+                <div class="flex flex-col gap-5">
+                    <% user.orders.slice().reverse().forEach(function(order){ %>
+                        <div class="bg-white shadow rounded-xl p-6">
+
+                            <!-- Order Header -->
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-xs text-gray-400 mb-1">Order ID</p>
+                                    <p class="font-mono font-semibold text-sm"><%= order.orderId %></p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-400 mb-1">Ordered On</p>
+                                    <p class="text-sm font-medium"><%= new Date(order.orderedAt).toDateString() %></p>
+                                </div>
+                            </div>
+
+                            <!-- Order Items -->
+                            <% if(order.items && order.items.length > 0){ %>
+                                <div class="flex flex-col gap-2 mb-4">
+                                    <% order.items.forEach(function(cartItem){ %>
+                                        <% if(cartItem.product){ %>
+                                            <div class="flex items-center gap-3 bg-zinc-50 rounded-lg p-3">
+                                                <div class="w-12 h-12 rounded overflow-hidden flex items-center justify-center flex-shrink-0"
+                                                     style="background-color: <%= cartItem.product.bgcolor || '#f0f0f0' %>">
+                                                    <img class="h-full object-contain"
+                                                         src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
+                                                         alt="<%= cartItem.product.name %>">
+                                                </div>
+                                                <div class="flex-1">
+                                                    <p class="font-medium text-sm"><%= cartItem.product.name %></p>
+                                                    <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
+                                                </div>
+                                                <p class="text-sm font-semibold">
+                                                    ₹ <%= ((cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity).toFixed(0) %>
+                                                </p>
+                                            </div>
+                                        <% } %>
+                                    <% }) %>
+                                </div>
+                            <% } %>
+
+                            <!-- Order Footer -->
+                            <div class="border-t pt-4 flex flex-wrap gap-4 justify-between items-center text-sm">
+                                <div class="flex gap-6">
+                                    <div>
+                                        <p class="text-gray-400 text-xs">Payment</p>
+                                        <p class="font-medium capitalize"><%= order.paymentmode %></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-400 text-xs">Delivery Address</p>
+                                        <p class="font-medium"><%= order.address %></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-400 text-xs">Estimated Delivery</p>
+                                        <p class="font-medium text-orange-500"><%= order.deliveryDate %></p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-gray-400 text-xs">
+                                        <%= order.paymentmode === 'cod' ? 'Amount Due' : 'Total Paid' %>
+                                    </p>
+                                    <p class="font-bold text-base <%= order.paymentmode === 'cod' ? 'text-orange-500' : 'text-green-600' %>">
+                                        ₹ <%= order.bill %>
+                                    </p>
+                                    <% if(order.paymentmode === 'cod'){ %>
+                                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pay on delivery</span>
+                                    <% } else { %>
+                                        <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Paid</span>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                        </div>
+                    <% }) %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<%- include('./partials/footer') %>

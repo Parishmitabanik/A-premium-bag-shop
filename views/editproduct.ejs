@@ -1,0 +1,94 @@
+<%- include('./partials/header') %>
+
+<% if(success && success.length > 0){ %>
+    <div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-blue-500">
+        <span class="inline-block mt-1 mb-1 text-white"><%= success %></span>
+    </div>
+<% } %>
+
+<div class="min-h-screen flex flex-col">
+    <div class="container px-10 py-20 flex flex-grow">
+
+        <!-- Sidebar -->
+        <div class="w-[25%] flex flex-col items-start">
+            <div class="flex flex-col gap-2">
+                <a class="block w-fit font-medium hover:underline" href="/owners/allproducts">All Products</a>
+                <a class="block w-fit font-medium hover:underline" href="/owners/admin">Create New Product</a>
+                <a class="block w-fit text-red-500 hover:underline mt-4" href="/owners/logout">Logout</a>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        <main class="w-3/4 bg-white p-8 shadow ml-4">
+            <h2 class="text-xl font-bold mb-6">Edit Product</h2>
+
+            <form action="/owners/updateproduct/<%= product._id %>" method="post" enctype="multipart/form-data">
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Product Details</h3>
+
+                    <!-- Current image preview -->
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-500 mb-2">Current Image:</p>
+                        <div class="w-24 h-24 rounded overflow-hidden flex items-center justify-center mb-3"
+                             style="background-color: <%= product.bgcolor %>">
+                            <img class="h-full object-contain"
+                                 src="data:image/jpeg;base64,<%= product.image.toString('base64') %>"
+                                 alt="<%= product.name %>">
+                        </div>
+                        <label class="block mb-2 font-medium text-sm">Change Image <span class="text-gray-400 font-normal">(leave empty to keep current)</span></label>
+                        <input name="image" type="file" class="py-2 px-4 rounded border w-full">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <input name="name" type="text" placeholder="Product Name"
+                            value="<%= product.name %>"
+                            class="border p-2 rounded w-full" required>
+                        <input name="price" type="number" placeholder="Product Price"
+                            value="<%= product.price %>"
+                            class="border p-2 rounded w-full" required>
+                        <input name="discount" type="number" placeholder="Discount %"
+                            value="<%= product.discount %>"
+                            class="border p-2 rounded w-full">
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-2">Panel Details</h3>
+                    <p class="text-sm text-gray-400 mb-3">Enter valid CSS colors e.g. <span class="font-mono">#f5cba7</span></p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm mb-1 text-gray-500">Background Color</label>
+                            <input name="bgcolor" type="text"
+                                value="<%= product.bgcolor %>"
+                                class="border p-2 rounded w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1 text-gray-500">Panel Color</label>
+                            <input name="panelcolor" type="text"
+                                value="<%= product.panelcolor %>"
+                                class="border p-2 rounded w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1 text-gray-500">Text Color</label>
+                            <input name="textcolor" type="text"
+                                value="<%= product.textcolor %>"
+                                class="border p-2 rounded w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <input class="px-5 py-2 rounded bg-blue-500 text-white cursor-pointer hover:bg-blue-600"
+                        type="submit" value="Update Product">
+                    <a href="/owners/allproducts"
+                       class="px-5 py-2 rounded bg-gray-100 text-gray-600 hover:bg-gray-200">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+<%- include('./partials/footer') %>
