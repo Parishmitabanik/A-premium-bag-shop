@@ -31,9 +31,9 @@
     </div>
 
     <!-- BUYER PANEL -->
-    <div id="buyer-panel" class="hidden w-full flex">
-        <div class="w-1/2 flex items-center justify-center min-h-screen border-r">
-            <div class="w-full px-32">
+    <div id="buyer-panel" class="hidden w-full flex flex-col md:flex-row">
+        <div class="w-full md:w-1/2 flex items-center justify-center py-12 md:min-h-screen md:border-r">
+            <div class="w-full px-8 sm:px-16 md:px-24 max-w-md">
                 <button onclick="showPanel('home')" class="text-sm text-gray-400 mb-6 hover:underline">← Back</button>
                 <h3 class="text-3xl mb-1">Welcome to <span class="text-blue-400 font-semibold">Scatch</span></h3>
                 <h4 class="text-xl text-gray-500 mb-5">Create buyer account</h4>
@@ -49,8 +49,8 @@
                 </form>
             </div>
         </div>
-        <div class="w-1/2 flex items-center justify-center min-h-screen">
-            <div class="w-full px-32">
+        <div class="w-full md:w-1/2 flex items-center justify-center py-12 md:min-h-screen border-t md:border-t-0">
+            <div class="w-full px-8 sm:px-16 md:px-24 max-w-md">
                 <h4 class="text-2xl mb-5">Login as Buyer</h4>
                 <form autocomplete="off" action="/users/login" method="post">
                     <input class="bg-zinc-100 block w-full px-3 py-2 border rounded-md mb-3 border-zinc-200"
@@ -65,9 +65,9 @@
     </div>
 
     <!-- SELLER PANEL -->
-    <div id="seller-panel" class="hidden w-full flex">
-        <div class="w-1/2 flex items-center justify-center min-h-screen border-r">
-            <div class="w-full px-32">
+    <div id="seller-panel" class="hidden w-full flex flex-col md:flex-row">
+        <div class="w-full md:w-1/2 flex items-center justify-center py-12 md:min-h-screen md:border-r">
+            <div class="w-full px-8 sm:px-16 md:px-24 max-w-md">
                 <button onclick="showPanel('home')" class="text-sm text-gray-400 mb-6 hover:underline">← Back</button>
                 <h3 class="text-3xl mb-1">Register as <span class="text-green-500 font-semibold">Seller</span></h3>
                 <h4 class="text-lg text-gray-500 mb-5">Create your seller account</h4>
@@ -85,8 +85,8 @@
                 </form>
             </div>
         </div>
-        <div class="w-1/2 flex items-center justify-center min-h-screen">
-            <div class="w-full px-32">
+        <div class="w-full md:w-1/2 flex items-center justify-center py-12 md:min-h-screen border-t md:border-t-0">
+           <div class="w-full px-8 sm:px-16 md:px-24 max-w-md">
                 <h4 class="text-2xl mb-5">Login as Seller</h4>
                 <form autocomplete="off" action="/owners/login" method="post">
                     <input class="bg-zinc-100 block w-full px-3 py-2 border rounded-md mb-3 border-zinc-200"
