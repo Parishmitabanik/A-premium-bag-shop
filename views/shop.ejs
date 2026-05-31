@@ -1,9 +1,15 @@
 <%- include('./partials/header') %>
 
-<% if(success && success.length>0){ %>
-    <div class="absolute top-5 left-1/2 -translate-x-1/2 -translate-y-1/2 p-3 rounded-md bg-blue-500">
-        <span class="inline-block mt-1 mb-1 text-white"><%= success %></span>
+<% if(success && success.length > 0){ %>
+    <div id="flash-msg" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 p-3 px-6 rounded-md bg-blue-500 shadow-lg">
+        <span class="text-white font-medium"><%= success %></span>
     </div>
+    <script>
+        setTimeout(function() {
+            var el = document.getElementById('flash-msg');
+            if(el) el.style.display = 'none';
+        }, 3000);
+    </script>
 <% } %>
 
 <div class="w-full min-h-screen flex flex-col md:flex-row items-start px-4 md:px-20 py-10">
