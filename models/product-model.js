@@ -10,7 +10,11 @@ const productSchema = mongoose.Schema({
     },
     bgcolor: String,
     panelcolor: String,
-    textcolor: String
-}, { timestamps: true }) // ← this auto-adds createdAt and updatedAt
+    textcolor: String,
+    owner: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "owner"
+    }
+}, { timestamps: true })
 
 module.exports = mongoose.model("product", productSchema)

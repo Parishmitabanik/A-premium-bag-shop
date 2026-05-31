@@ -10,7 +10,8 @@ const upload = require("../config/multer-config"); // add at top if not there
 
 // Show edit form
 router.get("/editproduct/:id", isOwnerLoggedIn, async function(req, res) {
-    let product = await productModel.findById(req.params.id);
+    let product = await productModel.findOne({ _id: req.params.id, owner: req.owner.id });
+    if (!product) return res.status(403).send("Not authorized to edit this product");
     let success = req.flash("success");
     res.render("editproduct", { product, success, isOwner: true });
 });
@@ -34,13 +35,16 @@ router.post("/updateproduct/:id", isOwnerLoggedIn, upload.single("image"), async
         res.send(err.message);
     }
 });
+
 router.get("/allproducts", isOwnerLoggedIn, async function(req, res) {
-    let products = await productModel.find();
-    let success = req.flash("success");  // add this line
-    res.render("admin", { products, isOwner: true, success });  // add success here
+    let products = await productModel.find({ owner: req.owner.id });
+    let success = req.flash("success");
+    res.render("admin", { products, isOwner: true, success });
 });
 
 router.get("/deleteproduct/:id", isOwnerLoggedIn, async function(req, res) {
+    let product = await productModel.findOne({ _id: req.params.id, owner: req.owner.id });
+    if (!product) return res.status(403).send("Not authorized to delete this product");
     await productModel.findByIdAndDelete(req.params.id);
     req.flash("success", "Product deleted successfully");
     res.redirect("/owners/allproducts");
