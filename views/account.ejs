@@ -1,13 +1,13 @@
 <%- include('./partials/header') %>
 
-<div class="w-full min-h-screen px-20 py-16">
+<div class="w-full min-h-screen px-4 md:px-20 py-10 md:py-16">
     <h2 class="text-2xl font-semibold mb-8">My Account</h2>
 
-    <div class="flex gap-10 items-start">
+    <div class="flex flex-col md:flex-row gap-8 items-start">
 
         <!-- Left: Profile Card -->
-        <div class="w-[30%]">
-            <div class="bg-white shadow rounded-xl p-8 flex flex-col items-center text-center">
+        <div class="w-full md:w-[30%]">
+            <div class="bg-white shadow rounded-xl p-6 md:p-8 flex flex-col items-center text-center">
                 <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                     <i class="ri-user-3-fill text-blue-500 text-4xl"></i>
                 </div>
@@ -40,11 +40,11 @@
         </div>
 
         <!-- Right: Order History -->
-        <div class="w-[70%]">
+        <div class="w-full md:w-[70%]">
             <h3 class="text-xl font-semibold mb-4">Order History</h3>
 
             <% if(user.orders.length === 0){ %>
-                <div class="bg-white shadow rounded-xl p-12 text-center">
+                <div class="bg-white shadow rounded-xl p-10 text-center">
                     <i class="ri-shopping-bag-line text-gray-300 text-6xl"></i>
                     <p class="text-gray-400 mt-4 text-lg">No orders yet</p>
                     <a href="/shop"
@@ -55,10 +55,9 @@
             <% } else { %>
                 <div class="flex flex-col gap-5">
                     <% user.orders.slice().reverse().forEach(function(order){ %>
-                        <div class="bg-white shadow rounded-xl p-6">
+                        <div class="bg-white shadow rounded-xl p-4 md:p-6">
 
-                            <!-- Order Header -->
-                            <div class="flex justify-between items-start mb-4">
+                            <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
                                 <div>
                                     <p class="text-xs text-gray-400 mb-1">Order ID</p>
                                     <p class="font-mono font-semibold text-sm"><%= order.orderId %></p>
@@ -69,7 +68,6 @@
                                 </div>
                             </div>
 
-                            <!-- Order Items -->
                             <% if(order.items && order.items.length > 0){ %>
                                 <div class="flex flex-col gap-2 mb-4">
                                     <% order.items.forEach(function(cartItem){ %>
@@ -81,11 +79,11 @@
                                                          src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
                                                          alt="<%= cartItem.product.name %>">
                                                 </div>
-                                                <div class="flex-1">
-                                                    <p class="font-medium text-sm"><%= cartItem.product.name %></p>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-medium text-sm truncate"><%= cartItem.product.name %></p>
                                                     <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
                                                 </div>
-                                                <p class="text-sm font-semibold">
+                                                <p class="text-sm font-semibold flex-shrink-0">
                                                     ₹ <%= ((cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity).toFixed(0) %>
                                                 </p>
                                             </div>
@@ -94,9 +92,8 @@
                                 </div>
                             <% } %>
 
-                            <!-- Order Footer -->
-                            <div class="border-t pt-4 flex flex-wrap gap-4 justify-between items-center text-sm">
-                                <div class="flex gap-6">
+                            <div class="border-t pt-4 flex flex-col sm:flex-row flex-wrap gap-4 justify-between items-start sm:items-center text-sm">
+                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
                                     <div>
                                         <p class="text-gray-400 text-xs">Payment</p>
                                         <p class="font-medium capitalize"><%= order.paymentmode %></p>
@@ -110,7 +107,7 @@
                                         <p class="font-medium text-orange-500"><%= order.deliveryDate %></p>
                                     </div>
                                 </div>
-                                <div class="text-right">
+                                <div class="text-left sm:text-right">
                                     <p class="text-gray-400 text-xs">
                                         <%= order.paymentmode === 'cod' ? 'Amount Due' : 'Total Paid' %>
                                     </p>

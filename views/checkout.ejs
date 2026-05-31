@@ -1,15 +1,14 @@
 <%- include('./partials/header') %>
 
-<div class="w-full min-h-screen px-20 py-16">
+<div class="w-full min-h-screen px-4 md:px-20 py-10 md:py-16">
     <h2 class="text-2xl font-semibold mb-8">Checkout</h2>
 
-    <div class="flex gap-10">
+    <div class="flex flex-col md:flex-row gap-8">
         <!-- Left: Address + Payment Form -->
-        <div class="w-[60%]">
+        <div class="w-full md:w-[60%]">
             <form action="/checkout" method="post">
 
-                <!-- Delivery Address -->
-                <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <div class="bg-white shadow rounded-lg p-5 md:p-6 mb-6">
                     <h3 class="text-lg font-semibold mb-4">📦 Delivery Address</h3>
                     <div class="flex flex-col gap-3">
                         <input type="text" name="fullname" placeholder="Full Name" required
@@ -29,12 +28,10 @@
                     </div>
                 </div>
 
-                <!-- Payment Mode -->
-                <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <div class="bg-white shadow rounded-lg p-5 md:p-6 mb-6">
                     <h3 class="text-lg font-semibold mb-4">💳 Payment Mode</h3>
                     <div class="flex flex-col gap-3">
 
-                        <!-- COD -->
                         <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
                             onclick="showPaymentFields('cod')">
                             <input type="radio" name="paymentmode" value="cod" required>
@@ -44,7 +41,6 @@
                             </div>
                         </label>
 
-                        <!-- UPI -->
                         <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
                             onclick="showPaymentFields('upi')">
                             <input type="radio" name="paymentmode" value="upi" required>
@@ -58,7 +54,6 @@
                                 class="border p-2 rounded w-full bg-zinc-50">
                         </div>
 
-                        <!-- Card -->
                         <label class="flex items-center gap-3 border rounded-lg p-4 cursor-pointer hover:bg-zinc-50"
                             onclick="showPaymentFields('card')">
                             <input type="radio" name="paymentmode" value="card" required>
@@ -89,14 +84,14 @@
         </div>
 
         <!-- Right: Order Summary -->
-        <div class="w-[40%]">
-            <div class="bg-white shadow rounded-lg p-6 sticky top-10">
+        <div class="w-full md:w-[40%]">
+            <div class="bg-white shadow rounded-lg p-5 md:p-6 md:sticky md:top-10">
                 <h3 class="text-lg font-semibold mb-4">Order Summary</h3>
                 <div class="flex flex-col gap-3 mb-4">
                     <% user.cart.forEach(function(cartItem){ %>
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded overflow-hidden flex items-center justify-center"
+                                <div class="w-10 h-10 rounded overflow-hidden flex items-center justify-center flex-shrink-0"
                                      style="background-color: <%= cartItem.product.bgcolor %>">
                                     <img class="h-full object-contain"
                                          src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
@@ -107,7 +102,7 @@
                                     <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
                                 </div>
                             </div>
-                            <p class="text-sm font-semibold">₹ <%= (cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity %></p>
+                            <p class="text-sm font-semibold flex-shrink-0 ml-2">₹ <%= (cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity %></p>
                         </div>
                     <% }) %>
                 </div>

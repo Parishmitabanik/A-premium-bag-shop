@@ -1,6 +1,6 @@
 <%- include('./partials/header') %>
 
-<div class="w-full min-h-screen px-20 py-20">
+<div class="w-full min-h-screen px-4 md:px-20 py-10 md:py-20">
 
     <% if(user.cart.length === 0){ %>
         <div class="text-center mt-20">
@@ -9,10 +9,10 @@
         </div>
     <% } else { %>
 
-        <div class="flex gap-10 items-start">
+        <div class="flex flex-col md:flex-row gap-8 items-start">
 
             <!-- LEFT: Cart Items -->
-            <div class="w-[55%] flex flex-col gap-6">
+            <div class="w-full md:w-[55%] flex flex-col gap-6">
                 <h2 class="text-2xl font-semibold">My Cart (<%= user.cart.length %> item<%= user.cart.length > 1 ? 's' : '' %>)</h2>
 
                 <% user.cart.forEach(function(cartItem){ %>
@@ -22,21 +22,19 @@
                     <% let itemTotal = discountedPrice * qty; %>
 
                     <div class="w-full rounded-md overflow-hidden shadow-sm border border-gray-100">
-                        <!-- Product Image -->
-                        <div class="w-full flex justify-center items-center h-52 bg-[<%= product.bgcolor %>]">
-                            <img class="h-[11rem]"
+                        <div class="w-full flex justify-center items-center h-44 sm:h-52 bg-[<%= product.bgcolor %>]">
+                            <img class="h-[10rem] sm:h-[11rem] object-contain"
                                  src="data:image/jpeg;base64,<%= product.image.toString('base64') %>"
                                  alt="<%= product.name %>">
                         </div>
 
-                        <!-- Product Info + Quantity Controls -->
-                        <div class="flex items-center justify-between px-5 py-4 bg-[<%= product.panelcolor %>] text-[<%= product.textcolor %>]">
-                            <div>
-                                <h3 class="text-xl font-medium"><%= product.name %></h3>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-lg">₹ <%= discountedPrice.toFixed(0) %></span>
+                        <div class="flex items-center justify-between px-4 py-4 bg-[<%= product.panelcolor %>] text-[<%= product.textcolor %>]">
+                            <div class="flex-1 min-w-0 mr-3">
+                                <h3 class="text-base sm:text-xl font-medium truncate"><%= product.name %></h3>
+                                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span class="text-base sm:text-lg">₹ <%= discountedPrice.toFixed(0) %></span>
                                     <% if(product.discount > 0){ %>
-                                        <span class="text-sm line-through opacity-60">₹ <%= product.price %></span>
+                                        <span class="text-xs line-through opacity-60">₹ <%= product.price %></span>
                                         <span class="px-2 py-0.5 text-xs rounded bg-red-200 text-red-700">
                                             -<%= product.discount %>%
                                         </span>
@@ -44,26 +42,24 @@
                                 </div>
                             </div>
 
-                            <!-- Quantity Controls -->
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                                 <a href="/cart/decrease/<%= product._id %>"
-                                   class="w-8 h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
-                                    <i class="ri-subtract-line text-black"></i>
+                                   class="w-7 h-7 sm:w-8 sm:h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
+                                    <i class="ri-subtract-line text-black text-sm"></i>
                                 </a>
-                                <div class="px-3 py-1 rounded-md bg-white text-black font-semibold min-w-[2rem] text-center">
+                                <div class="px-2 py-1 rounded-md bg-white text-black font-semibold min-w-[2rem] text-center text-sm">
                                     <%= String(qty).padStart(2, '0') %>
                                 </div>
                                 <a href="/cart/increase/<%= product._id %>"
-                                   class="w-8 h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
-                                    <i class="ri-add-line text-black"></i>
+                                   class="w-7 h-7 sm:w-8 sm:h-8 bg-white flex rounded-full items-center justify-center shadow hover:bg-gray-100">
+                                    <i class="ri-add-line text-black text-sm"></i>
                                 </a>
                             </div>
                         </div>
 
-                        <!-- Item Net Total -->
-                        <div class="flex text-white items-center justify-between px-5 py-3 bg-[<%= product.textcolor %>]">
-                            <h4 class="text-lg">Item Total</h4>
-                            <h2 class="text-lg font-semibold">₹ <%= itemTotal.toFixed(0) %></h2>
+                        <div class="flex text-white items-center justify-between px-4 py-3 bg-[<%= product.textcolor %>]">
+                            <h4 class="text-base sm:text-lg">Item Total</h4>
+                            <h2 class="text-base sm:text-lg font-semibold">₹ <%= itemTotal.toFixed(0) %></h2>
                         </div>
                     </div>
 
@@ -71,9 +67,9 @@
             </div>
 
             <!-- RIGHT: Price Breakdown -->
-            <div class="w-[45%] sticky top-10">
+            <div class="w-full md:w-[45%] md:sticky md:top-10">
                 <h3 class="text-xl font-semibold">Price Breakdown</h3>
-                <div class="px-4 mt-5 flex flex-col gap-3">
+                <div class="px-0 md:px-4 mt-5 flex flex-col gap-3">
 
                     <% let totalMRP = 0; %>
                     <% let totalDiscount = 0; %>

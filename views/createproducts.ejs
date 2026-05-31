@@ -7,20 +7,17 @@
 <% } %>
 
 <div class="min-h-screen flex flex-col">
-    <div class="container px-10 py-20 flex flex-grow">
+    <div class="container px-4 md:px-10 py-10 md:py-20 flex flex-col md:flex-row flex-grow gap-6">
 
         <!-- Sidebar -->
-        <!-- Sidebar -->
-        <div class="w-[25%] flex flex-col items-start">
-            <div class="flex flex-col gap-2">
-                <a class="block w-fit font-medium hover:underline" href="/owners/allproducts">All Products</a>
-                <a class="block w-fit font-medium hover:underline" href="/owners/admin">Create New Product</a>
-                <a class="block w-fit text-red-500 hover:underline mt-4" href="/owners/logout">Logout</a>
-            </div>
+        <div class="w-full md:w-[25%] flex flex-row md:flex-col items-start gap-4 md:gap-2">
+            <a class="block w-fit font-medium hover:underline" href="/owners/allproducts">All Products</a>
+            <a class="block w-fit font-medium hover:underline" href="/owners/admin">Create New Product</a>
+            <a class="block w-fit text-red-500 hover:underline" href="/owners/logout">Logout</a>
         </div>
 
         <!-- Main Form -->
-        <main class="w-3/4 bg-white p-8 shadow ml-4">
+        <main class="w-full md:w-3/4 bg-white p-6 md:p-8 shadow">
             <h2 class="text-xl font-bold mb-4">Create New Product</h2>
             <form autocomplete="off" action="/products/create" method="post" enctype="multipart/form-data">
 
@@ -28,9 +25,9 @@
                     <h3 class="text-lg font-semibold mb-2">Product Details</h3>
                     <div class="mb-4">
                         <label class="block mb-2 font-medium">Product Image</label>
-                        <input name="image" type="file" class="py-2 px-4 rounded">
+                        <input name="image" type="file" class="py-2 px-4 rounded w-full">
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input name="name" type="text" placeholder="Product Name"
                             class="border p-2 rounded w-full">
                         <input name="price" type="number" placeholder="Product Price"
@@ -45,7 +42,7 @@
                     <p class="text-sm text-gray-400 mb-3">Enter valid CSS colors e.g.
                         <span class="font-mono">#f5cba7</span> or <span class="font-mono">pink</span>
                     </p>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm mb-1 text-gray-500">Background Color</label>
                             <input name="bgcolor" type="text" placeholder="#f5cba7"
@@ -64,7 +61,7 @@
                     </div>
                 </div>
 
-                <input class="px-5 py-2 rounded mt-3 bg-blue-500 text-white cursor-pointer hover:bg-blue-600"
+                <input class="px-5 py-2 rounded mt-3 bg-blue-500 text-white cursor-pointer hover:bg-blue-600 w-full sm:w-auto"
                     type="submit" value="Create New Product">
             </form>
         </main>
