@@ -16,7 +16,12 @@ const userSchema = mongoose.Schema({
             items: [
                 {
                     product: { type: mongoose.Schema.Types.ObjectId, ref: "product" },
-                    quantity: Number
+                    quantity: Number,
+                    review: {
+                        rating: { type: Number, min: 1, max: 5 },
+                        comment: String,
+                        reviewedAt: Date
+                    }
                 }
             ],
             bill: Number,

@@ -16,12 +16,10 @@ router.get("/shop", isLoggedIn, async function(req, res) {
     let query = {};
     let sortOption = {};
 
-    // Search filter
     if (search && search.trim().length > 0) {
         query.name = { $regex: search.trim(), $options: "i" };
     }
 
-    // Category filter
     if (filter === "discounted") {
         query.discount = { $gt: 0 };
     } else if (filter === "new") {
@@ -30,7 +28,6 @@ router.get("/shop", isLoggedIn, async function(req, res) {
         query.createdAt = { $gte: thirtyDaysAgo };
     }
 
-    // Sort
     if (sortby === "newest") {
         sortOption = { createdAt: -1 };
     } else if (sortby === "price_asc") {
@@ -63,7 +60,6 @@ router.get("/product/:id", isLoggedIn, async function(req, res) {
 
 router.get("/cart", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
-
     let bill = 0;
     user.cart.forEach(function(cartItem) {
         let product = cartItem.product;
@@ -72,23 +68,19 @@ router.get("/cart", isLoggedIn, async function(req, res) {
         bill += discountedPrice * qty;
     });
     bill += 20;
-
     res.render("cart", { user, bill });
 });
 
 router.get("/addtocart/:productid", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email });
-
     let existingItem = user.cart.find(function(item) {
         return item.product.toString() === req.params.productid;
     });
-
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
         user.cart.push({ product: req.params.productid, quantity: 1 });
     }
-
     await user.save();
     req.flash("success", "Product added to cart successfully");
     res.redirect("/shop");
@@ -124,9 +116,7 @@ router.get("/cart/decrease/:productid", isLoggedIn, async function(req, res) {
 
 router.get("/checkout", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
-
     if (user.cart.length === 0) return res.redirect("/cart");
-
     let totalMRP = 0;
     let totalDiscount = 0;
     user.cart.forEach(function(cartItem) {
@@ -134,7 +124,6 @@ router.get("/checkout", isLoggedIn, async function(req, res) {
         totalDiscount += (cartItem.product.discount / 100) * cartItem.product.price * cartItem.quantity;
     });
     let bill = totalMRP - totalDiscount + 20;
-
     res.render("checkout", { user, totalMRP, totalDiscount, bill });
 });
 
@@ -142,16 +131,15 @@ router.get("/account", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email })
         .populate("cart.product")
         .populate("orders.items.product");
-    res.render("account", { user });
+    let success = req.flash("success");
+    let error = req.flash("error");
+    res.render("account", { user, success, error });
 });
 
 router.post("/checkout", isLoggedIn, async function(req, res) {
     let { fullname, phone, address, city, state, pincode, paymentmode } = req.body;
-
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
-
     if (user.cart.length === 0) return res.redirect("/cart");
-
     let totalMRP = 0;
     let totalDiscount = 0;
     user.cart.forEach(function(cartItem) {
@@ -159,20 +147,14 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
         totalDiscount += (cartItem.product.discount / 100) * cartItem.product.price * cartItem.quantity;
     });
     let bill = totalMRP - totalDiscount + 20;
-
     let orderId = "SCH" + Date.now();
-
     let delivery = new Date();
     delivery.setDate(delivery.getDate() + 5);
     let deliveryDate = delivery.toDateString();
-
     user.orders.push({
         orderId,
         items: user.cart.map(function(cartItem) {
-            return {
-                product: cartItem.product._id,
-                quantity: cartItem.quantity
-            }
+            return { product: cartItem.product._id, quantity: cartItem.quantity }
         }),
         bill,
         address: `${address}, ${city}, ${state} - ${pincode}`,
@@ -180,21 +162,52 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
         deliveryDate,
         orderedAt: new Date()
     });
-
     user.cart = [];
     await user.save();
-
     res.render("orderconfirmation", {
-        username: fullname,
-        orderId,
-        paymentmode,
-        address,
-        city,
-        state,
-        pincode,
-        bill,
-        deliveryDate
+        username: fullname, orderId, paymentmode,
+        address, city, state, pincode, bill, deliveryDate
     });
+});
+
+// Submit Review
+router.post("/review/:orderId/:itemId", isLoggedIn, async function(req, res) {
+    try {
+        let { rating, comment } = req.body;
+        let user = await userModel.findOne({ email: req.user.email });
+
+        let order = user.orders.find(o => o.orderId === req.params.orderId);
+        if (!order) {
+            req.flash("error", "Order not found");
+            return res.redirect("/account");
+        }
+
+        // Check if delivery date has passed
+        let deliveryDate = new Date(order.deliveryDate);
+        let today = new Date();
+        if (today < deliveryDate) {
+            req.flash("error", "You can only review after delivery");
+            return res.redirect("/account");
+        }
+
+        let item = order.items.id(req.params.itemId);
+        if (!item) {
+            req.flash("error", "Item not found");
+            return res.redirect("/account");
+        }
+
+        item.review = {
+            rating: parseInt(rating),
+            comment: comment.trim(),
+            reviewedAt: new Date()
+        };
+
+        await user.save();
+        req.flash("success", "Review submitted successfully!");
+        res.redirect("/account");
+    } catch (err) {
+        res.status(500).send("Error submitting review: " + err.message);
+    }
 });
 
 router.get("/logout", isLoggedIn, function(req, res) {
