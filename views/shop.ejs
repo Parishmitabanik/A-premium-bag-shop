@@ -16,11 +16,39 @@
 
     <!-- Sidebar -->
     <div class="w-full md:w-[25%] flex flex-col items-start md:sticky md:top-20 mb-8 md:mb-0">
+
+        <!-- Search Bar -->
+        <form action="/shop" method="get" class="w-full mb-6">
+            <input type="hidden" name="sortby" value="<%= sortby %>">
+            <input type="hidden" name="filter" value="<%= filter %>">
+            <div class="flex items-center border rounded-lg overflow-hidden w-full">
+                <input
+                    type="text"
+                    name="search"
+                    value="<%= search || '' %>"
+                    placeholder="Search bags..."
+                    class="flex-1 px-3 py-2 text-sm outline-none bg-white">
+                <button type="submit" class="px-3 py-2 bg-blue-500 text-white hover:bg-blue-600">
+                    <i class="ri-search-line"></i>
+                </button>
+            </div>
+        </form>
+
+        <!-- Search result info -->
+        <% if(search && search.length > 0){ %>
+            <div class="mb-4 w-full">
+                <p class="text-sm text-gray-500">
+                    <%= products.length %> result<%= products.length !== 1 ? 's' : '' %> for "<strong><%= search %></strong>"
+                </p>
+                <a href="/shop?sortby=<%= sortby %>&filter=<%= filter %>" class="text-xs text-blue-500 hover:underline">Clear search</a>
+            </div>
+        <% } %>
+
         <div class="flex items-center gap-2 flex-wrap">
             <h3>sort by</h3>
             <select
                 class="border-[1px] px-2 py-1"
-                onchange="window.location.href='/shop?sortby=' + this.value + '&filter=<%= filter %>'">
+                onchange="window.location.href='/shop?sortby=' + this.value + '&filter=<%= filter %>&search=<%= search || '' %>'">
                 <option value="popular"    <%= sortby === 'popular'    ? 'selected' : '' %>>Popular</option>
                 <option value="newest"     <%= sortby === 'newest'     ? 'selected' : '' %>>Newest</option>
                 <option value="price_asc"  <%= sortby === 'price_asc'  ? 'selected' : '' %>>Price: Low to High</option>
@@ -28,7 +56,7 @@
             </select>
         </div>
 
-        <div class="flex flex-row md:flex-col gap-4 md:gap-0 mt-6 md:mt-20">
+        <div class="flex flex-row md:flex-col gap-4 md:gap-0 mt-6 md:mt-10">
             <a class="block w-fit mb-2 font-medium hover:underline"
             href="/shop?sortby=newest&filter=new">New Collection</a>
             <a class="block w-fit mb-2 font-medium hover:underline"
@@ -37,7 +65,7 @@
             href="/shop?sortby=<%= sortby %>&filter=discounted">Discounted Products</a>
         </div>
 
-        <div class="mt-6 md:mt-32">
+        <div class="mt-6 md:mt-16">
             <p class="block w-fit mb-2 font-semibold">Filter by :</p>
             <a class="block w-fit mb-2 hover:underline"
                href="/shop?sortby=<%= sortby %>&filter=">Availability</a>
@@ -48,9 +76,17 @@
 
     <!-- Products Grid -->
     <div class="w-full md:w-[75%] grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+        <% if(products.length === 0){ %>
+            <div class="col-span-2 md:col-span-3 text-center py-20">
+                <i class="ri-search-line text-gray-300 text-6xl"></i>
+                <p class="text-gray-400 mt-4 text-lg">No products found for "<%= search %>"</p>
+                <a href="/shop" class="mt-3 inline-block text-blue-500 hover:underline text-sm">Browse all products</a>
+            </div>
+        <% } %>
+
         <% products.forEach(function(product){ %>
             <div class="w-full">
-                <!-- Clickable image -->
                 <a href="/product/<%= product._id %>">
                     <div class="w-full h-40 sm:h-52 flex items-center justify-center bg-[<%= product.bgcolor %>] hover:opacity-90 transition cursor-pointer">
                         <img class="h-[9rem] sm:h-[12rem] object-contain"

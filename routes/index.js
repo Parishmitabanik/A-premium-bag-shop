@@ -3,19 +3,25 @@ const isLoggedIn = require('../middlewares/isLoggedIn')
 const router = express.Router()
 const productModel = require("../models/product-model");
 const userModel = require('../models/user-model');
- 
+
 router.get("/", function(req, res) {
     let error = req.flash("error");
     let success = req.flash("success");
     let showPanel = req.flash("showPanel")[0] || null;
     res.render("index", { error, success, loggedin: false, showPanel });
 })
- 
+
 router.get("/shop", isLoggedIn, async function(req, res) {
-    let { sortby, filter } = req.query;
+    let { sortby, filter, search } = req.query;
     let query = {};
     let sortOption = {};
- 
+
+    // Search filter
+    if (search && search.trim().length > 0) {
+        query.name = { $regex: search.trim(), $options: "i" };
+    }
+
+    // Category filter
     if (filter === "discounted") {
         query.discount = { $gt: 0 };
     } else if (filter === "new") {
@@ -23,7 +29,8 @@ router.get("/shop", isLoggedIn, async function(req, res) {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         query.createdAt = { $gte: thirtyDaysAgo };
     }
- 
+
+    // Sort
     if (sortby === "newest") {
         sortOption = { createdAt: -1 };
     } else if (sortby === "price_asc") {
@@ -31,12 +38,18 @@ router.get("/shop", isLoggedIn, async function(req, res) {
     } else if (sortby === "price_desc") {
         sortOption = { price: -1 };
     }
- 
+
     let products = await productModel.find(query).sort(sortOption);
     let success = req.flash("success");
-    res.render("shop", { products, success, sortby: sortby || "popular", filter: filter || "" });
+    res.render("shop", {
+        products,
+        success,
+        sortby: sortby || "popular",
+        filter: filter || "",
+        search: search || ""
+    });
 })
- 
+
 // Product Detail Page
 router.get("/product/:id", isLoggedIn, async function(req, res) {
     try {
@@ -47,10 +60,10 @@ router.get("/product/:id", isLoggedIn, async function(req, res) {
         res.status(500).send("Error loading product");
     }
 })
- 
+
 router.get("/cart", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
- 
+
     let bill = 0;
     user.cart.forEach(function(cartItem) {
         let product = cartItem.product;
@@ -59,28 +72,28 @@ router.get("/cart", isLoggedIn, async function(req, res) {
         bill += discountedPrice * qty;
     });
     bill += 20;
- 
+
     res.render("cart", { user, bill });
 });
- 
+
 router.get("/addtocart/:productid", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email });
- 
+
     let existingItem = user.cart.find(function(item) {
         return item.product.toString() === req.params.productid;
     });
- 
+
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
         user.cart.push({ product: req.params.productid, quantity: 1 });
     }
- 
+
     await user.save();
     req.flash("success", "Product added to cart successfully");
     res.redirect("/shop");
 })
- 
+
 router.get("/cart/increase/:productid", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email });
     let item = user.cart.find(function(i) {
@@ -92,7 +105,7 @@ router.get("/cart/increase/:productid", isLoggedIn, async function(req, res) {
     }
     res.redirect("/cart");
 })
- 
+
 router.get("/cart/decrease/:productid", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email });
     let itemIndex = user.cart.findIndex(function(i) {
@@ -108,12 +121,12 @@ router.get("/cart/decrease/:productid", isLoggedIn, async function(req, res) {
     }
     res.redirect("/cart");
 })
- 
+
 router.get("/checkout", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
- 
+
     if (user.cart.length === 0) return res.redirect("/cart");
- 
+
     let totalMRP = 0;
     let totalDiscount = 0;
     user.cart.forEach(function(cartItem) {
@@ -121,24 +134,24 @@ router.get("/checkout", isLoggedIn, async function(req, res) {
         totalDiscount += (cartItem.product.discount / 100) * cartItem.product.price * cartItem.quantity;
     });
     let bill = totalMRP - totalDiscount + 20;
- 
+
     res.render("checkout", { user, totalMRP, totalDiscount, bill });
 });
- 
+
 router.get("/account", isLoggedIn, async function(req, res) {
     let user = await userModel.findOne({ email: req.user.email })
         .populate("cart.product")
         .populate("orders.items.product");
     res.render("account", { user });
 });
- 
+
 router.post("/checkout", isLoggedIn, async function(req, res) {
     let { fullname, phone, address, city, state, pincode, paymentmode } = req.body;
- 
+
     let user = await userModel.findOne({ email: req.user.email }).populate("cart.product");
- 
+
     if (user.cart.length === 0) return res.redirect("/cart");
- 
+
     let totalMRP = 0;
     let totalDiscount = 0;
     user.cart.forEach(function(cartItem) {
@@ -146,13 +159,13 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
         totalDiscount += (cartItem.product.discount / 100) * cartItem.product.price * cartItem.quantity;
     });
     let bill = totalMRP - totalDiscount + 20;
- 
+
     let orderId = "SCH" + Date.now();
- 
+
     let delivery = new Date();
     delivery.setDate(delivery.getDate() + 5);
     let deliveryDate = delivery.toDateString();
- 
+
     user.orders.push({
         orderId,
         items: user.cart.map(function(cartItem) {
@@ -167,10 +180,10 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
         deliveryDate,
         orderedAt: new Date()
     });
- 
+
     user.cart = [];
     await user.save();
- 
+
     res.render("orderconfirmation", {
         username: fullname,
         orderId,
@@ -183,9 +196,9 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
         deliveryDate
     });
 });
- 
+
 router.get("/logout", isLoggedIn, function(req, res) {
     res.render("shop")
 })
- 
+
 module.exports = router;
