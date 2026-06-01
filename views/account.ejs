@@ -6,7 +6,6 @@
     </div>
     <script>setTimeout(function(){ var el=document.getElementById('flash-msg'); if(el) el.style.display='none'; }, 2500);</script>
 <% } %>
-
 <% if(error && error.length > 0){ %>
     <div id="flash-err" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 p-3 px-6 rounded-md bg-red-500 shadow-lg">
         <span class="text-white font-medium"><%= error %></span>
@@ -19,7 +18,7 @@
 
     <div class="flex flex-col md:flex-row gap-8 items-start">
 
-        <!-- Left: Profile Card -->
+        <!-- Profile Card -->
         <div class="w-full md:w-[30%]">
             <div class="bg-white shadow rounded-xl p-6 md:p-8 flex flex-col items-center text-center">
                 <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
@@ -27,9 +26,7 @@
                 </div>
                 <h3 class="text-xl font-semibold"><%= user.fullname %></h3>
                 <p class="text-gray-400 text-sm mt-1"><%= user.email %></p>
-                <% if(user.contact){ %>
-                    <p class="text-gray-400 text-sm mt-1">📞 <%= user.contact %></p>
-                <% } %>
+                <% if(user.contact){ %><p class="text-gray-400 text-sm mt-1">📞 <%= user.contact %></p><% } %>
                 <div class="w-full border-t mt-6 pt-6 flex flex-col gap-3">
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-500">Total Orders</span>
@@ -45,7 +42,7 @@
             </div>
         </div>
 
-        <!-- Right: Order History -->
+        <!-- Order History -->
         <div class="w-full md:w-[70%]">
             <h3 class="text-xl font-semibold mb-4">Order History</h3>
 
@@ -57,125 +54,245 @@
                 </div>
             <% } else { %>
                 <div class="flex flex-col gap-5">
-                    <% user.orders.slice().reverse().forEach(function(order){ %>
-                        <% let today = new Date(); %>
-                        <% let deliveryDate = new Date(order.deliveryDate); %>
-                        <% let isDelivered = today >= deliveryDate; %>
+                <% user.orders.slice().reverse().forEach(function(order){ %>
+                    <%
+                        let today = new Date();
+                        let deliveryDate = new Date(order.deliveryDate);
+                        let orderedAt = new Date(order.orderedAt);
 
-                        <div class="bg-white shadow rounded-xl p-4 md:p-6">
+                        // Auto-determine status based on dates if not cancelled/returned
+                        let status = order.status || 'ordered';
+                        if(status !== 'cancelled' && status !== 'returned') {
+                            let daysSinceOrder = (today - orderedAt) / (1000 * 60 * 60 * 24);
+                            if(today >= deliveryDate) status = 'delivered';
+                            else if(daysSinceOrder >= 2) status = 'shipped';
+                            else status = 'ordered';
+                        }
 
-                            <!-- Order Header -->
-                            <div class="flex justify-between items-start mb-4 flex-wrap gap-2">
-                                <div>
-                                    <p class="text-xs text-gray-400 mb-1">Order ID</p>
-                                    <p class="font-mono font-semibold text-sm"><%= order.orderId %></p>
-                                </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <p class="text-xs text-gray-400">Ordered On: <%= new Date(order.orderedAt).toDateString() %></p>
-                                    <% if(isDelivered){ %>
-                                        <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">✅ Delivered</span>
-                                    <% } else { %>
-                                        <span class="px-3 py-1 text-xs rounded-full bg-orange-100 text-orange-600 font-semibold">🚚 Expected: <%= order.deliveryDate %></span>
-                                    <% } %>
-                                </div>
+                        let isDelivered = status === 'delivered';
+                        let isShipped = status === 'shipped';
+                        let isCancelled = status === 'cancelled';
+                        let isReturned = status === 'returned';
+                        let canCancel = status === 'ordered';
+                        let canReturn = isDelivered && !isReturned;
+                    %>
+
+                    <div class="bg-white shadow rounded-xl p-4 md:p-6">
+
+                        <!-- Order Header -->
+                        <div class="flex justify-between items-start mb-5 flex-wrap gap-2">
+                            <div>
+                                <p class="text-xs text-gray-400 mb-1">Order ID</p>
+                                <p class="font-mono font-semibold text-sm"><%= order.orderId %></p>
+                                <p class="text-xs text-gray-400 mt-1">Ordered: <%= orderedAt.toDateString() %></p>
                             </div>
-
-                            <!-- Order Items -->
-                            <% if(order.items && order.items.length > 0){ %>
-                                <div class="flex flex-col gap-3 mb-4">
-                                    <% order.items.forEach(function(cartItem){ %>
-                                        <% if(cartItem.product){ %>
-                                            <div class="bg-zinc-50 rounded-lg p-3">
-                                                <div class="flex items-center gap-3">
-                                                    <div class="w-12 h-12 rounded overflow-hidden flex items-center justify-center flex-shrink-0"
-                                                         style="background-color: <%= cartItem.product.bgcolor || '#f0f0f0' %>">
-                                                        <img class="h-full object-contain"
-                                                             src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
-                                                             alt="<%= cartItem.product.name %>">
-                                                    </div>
-                                                    <div class="flex-1 min-w-0">
-                                                        <p class="font-medium text-sm truncate"><%= cartItem.product.name %></p>
-                                                        <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
-                                                    </div>
-                                                    <p class="text-sm font-semibold flex-shrink-0">
-                                                        ₹ <%= ((cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity).toFixed(0) %>
-                                                    </p>
-                                                </div>
-
-                                                <!-- Review Section -->
-                                                <% if(isDelivered){ %>
-                                                    <% if(cartItem.review && cartItem.review.rating){ %>
-                                                        <!-- Already reviewed -->
-                                                        <div class="mt-3 pt-3 border-t border-zinc-200">
-                                                            <p class="text-xs text-gray-500 mb-1">Your Review</p>
-                                                            <div class="flex items-center gap-1 mb-1">
-                                                                <% for(let i=1; i<=5; i++){ %>
-                                                                    <i class="ri-star-<%= i <= cartItem.review.rating ? 'fill text-yellow-400' : 'line text-gray-300' %> text-sm"></i>
-                                                                <% } %>
-                                                                <span class="text-xs text-gray-400 ml-1"><%= cartItem.review.rating %>/5</span>
-                                                            </div>
-                                                            <p class="text-sm text-gray-600 italic">"<%= cartItem.review.comment %>"</p>
-                                                            <p class="text-xs text-gray-400 mt-1">Reviewed on <%= new Date(cartItem.review.reviewedAt).toDateString() %></p>
-                                                        </div>
-                                                    <% } else { %>
-                                                        <!-- Review Form -->
-                                                        <div class="mt-3 pt-3 border-t border-zinc-200">
-                                                            <p class="text-xs font-semibold text-gray-600 mb-2">Rate this product</p>
-                                                            <form action="/review/<%= order.orderId %>/<%= cartItem._id %>" method="post">
-                                                                <!-- Star Rating -->
-                                                                <div class="flex gap-1 mb-2" id="stars-<%= cartItem._id %>">
-                                                                    <% for(let i=1; i<=5; i++){ %>
-                                                                        <label class="cursor-pointer">
-                                                                            <input type="radio" name="rating" value="<%= i %>" class="hidden" required>
-                                                                            <i class="ri-star-line text-xl text-gray-300 hover:text-yellow-400 transition star-icon"></i>
-                                                                        </label>
-                                                                    <% } %>
-                                                                </div>
-                                                                <textarea name="comment" rows="2" required
-                                                                    placeholder="Share your experience..."
-                                                                    class="w-full border rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:border-blue-300 mb-2"></textarea>
-                                                                <button type="submit"
-                                                                    class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full font-medium">
-                                                                    Submit Review
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    <% } %>
-                                                <% } else { %>
-                                                    <p class="text-xs text-gray-400 mt-2 pt-2 border-t border-zinc-200">⏳ Review available after delivery on <%= order.deliveryDate %></p>
-                                                <% } %>
-
-                                            </div>
-                                        <% } %>
-                                    <% }) %>
-                                </div>
-                            <% } %>
-
-                            <!-- Order Footer -->
-                            <div class="border-t pt-4 flex flex-col sm:flex-row flex-wrap gap-4 justify-between items-start sm:items-center text-sm">
-                                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                                    <div>
-                                        <p class="text-gray-400 text-xs">Payment</p>
-                                        <p class="font-medium capitalize"><%= order.paymentmode %></p>
-                                    </div>
-                                    <div>
-                                        <p class="text-gray-400 text-xs">Delivery Address</p>
-                                        <p class="font-medium"><%= order.address %></p>
-                                    </div>
-                                </div>
-                                <div class="text-left sm:text-right">
-                                    <p class="text-gray-400 text-xs"><%= order.paymentmode === 'cod' ? 'Amount Due' : 'Total Paid' %></p>
-                                    <p class="font-bold text-base <%= order.paymentmode === 'cod' ? 'text-orange-500' : 'text-green-600' %>">₹ <%= order.bill %></p>
-                                    <% if(order.paymentmode === 'cod'){ %>
-                                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pay on delivery</span>
-                                    <% } else { %>
-                                        <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Paid</span>
-                                    <% } %>
-                                </div>
+                            <div class="flex flex-col items-end gap-1">
+                                <% if(isCancelled){ %>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-600 font-semibold">❌ Cancelled</span>
+                                <% } else if(isReturned){ %>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-purple-100 text-purple-600 font-semibold">↩️ Return Requested</span>
+                                <% } else if(isDelivered){ %>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">✅ Delivered</span>
+                                <% } else if(isShipped){ %>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-600 font-semibold">📦 Shipped</span>
+                                <% } else { %>
+                                    <span class="px-3 py-1 text-xs rounded-full bg-orange-100 text-orange-600 font-semibold">🛍 Order Placed</span>
+                                <% } %>
                             </div>
-
                         </div>
-                    <% }) %>
+
+                        <!-- Order Timeline -->
+                        <% if(!isCancelled && !isReturned){ %>
+                        <div class="mb-5">
+                            <div class="flex items-center justify-between relative">
+                                <!-- Line -->
+                                <div class="absolute top-4 left-0 right-0 h-1 bg-gray-200 z-0">
+                                    <div class="h-full bg-green-500 transition-all duration-500"
+                                         style="width: <%= isDelivered ? '100%' : isShipped ? '50%' : '0%' %>"></div>
+                                </div>
+
+                                <!-- Step 1: Ordered -->
+                                <div class="flex flex-col items-center z-10 flex-1">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold
+                                        <%= status === 'ordered' || isShipped || isDelivered ? 'bg-green-500' : 'bg-gray-300' %>">
+                                        <i class="ri-shopping-bag-line"></i>
+                                    </div>
+                                    <p class="text-xs mt-1 text-center font-medium text-gray-600">Ordered</p>
+                                    <p class="text-xs text-gray-400"><%= orderedAt.toLocaleDateString() %></p>
+                                </div>
+
+                                <!-- Step 2: Shipped -->
+                                <div class="flex flex-col items-center z-10 flex-1">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold
+                                        <%= isShipped || isDelivered ? 'bg-green-500' : 'bg-gray-300' %>">
+                                        <i class="ri-truck-line"></i>
+                                    </div>
+                                    <p class="text-xs mt-1 text-center font-medium text-gray-600">Shipped</p>
+                                    <p class="text-xs text-gray-400">
+                                        <% let shippedDate = new Date(orderedAt); shippedDate.setDate(shippedDate.getDate() + 2); %>
+                                        <%= shippedDate.toLocaleDateString() %>
+                                    </p>
+                                </div>
+
+                                <!-- Step 3: Delivered -->
+                                <div class="flex flex-col items-center z-10 flex-1">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold
+                                        <%= isDelivered ? 'bg-green-500' : 'bg-gray-300' %>">
+                                        <i class="ri-checkbox-circle-line"></i>
+                                    </div>
+                                    <p class="text-xs mt-1 text-center font-medium text-gray-600">Delivered</p>
+                                    <p class="text-xs text-gray-400"><%= deliveryDate.toLocaleDateString() %></p>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+
+                        <!-- Cancelled info -->
+                        <% if(isCancelled){ %>
+                            <div class="bg-red-50 rounded-lg p-3 mb-4 text-sm text-red-600">
+                                ❌ This order was cancelled on <%= order.cancelledAt ? new Date(order.cancelledAt).toDateString() : 'N/A' %>
+                            </div>
+                        <% } %>
+
+                        <!-- Return info -->
+                        <% if(isReturned){ %>
+                            <div class="bg-purple-50 rounded-lg p-3 mb-4 text-sm text-purple-700">
+                                ↩️ Return requested on <%= order.returnedAt ? new Date(order.returnedAt).toDateString() : 'N/A' %><br>
+                                <span class="font-medium">Reason:</span> <%= order.returnReason %>
+                            </div>
+                        <% } %>
+
+                        <!-- Order Items -->
+                        <% if(order.items && order.items.length > 0){ %>
+                            <div class="flex flex-col gap-3 mb-4">
+                            <% order.items.forEach(function(cartItem){ %>
+                                <% if(cartItem.product){ %>
+                                    <div class="bg-zinc-50 rounded-lg p-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 rounded overflow-hidden flex items-center justify-center flex-shrink-0"
+                                                 style="background-color: <%= cartItem.product.bgcolor || '#f0f0f0' %>">
+                                                <img class="h-full object-contain"
+                                                     src="data:image/jpeg;base64,<%= cartItem.product.image.toString('base64') %>"
+                                                     alt="<%= cartItem.product.name %>">
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium text-sm truncate"><%= cartItem.product.name %></p>
+                                                <p class="text-xs text-gray-400">Qty: <%= cartItem.quantity %></p>
+                                            </div>
+                                            <p class="text-sm font-semibold flex-shrink-0">
+                                                ₹ <%= ((cartItem.product.price - (cartItem.product.discount/100)*cartItem.product.price) * cartItem.quantity).toFixed(0) %>
+                                            </p>
+                                        </div>
+
+                                        <!-- Review (only if delivered and not cancelled/returned) -->
+                                        <% if(isDelivered && !isCancelled && !isReturned){ %>
+                                            <% if(cartItem.review && cartItem.review.rating){ %>
+                                                <div class="mt-3 pt-3 border-t border-zinc-200">
+                                                    <p class="text-xs text-gray-500 mb-1">Your Review</p>
+                                                    <div class="flex items-center gap-1 mb-1">
+                                                        <% for(let i=1; i<=5; i++){ %>
+                                                            <i class="ri-star-<%= i <= cartItem.review.rating ? 'fill text-yellow-400' : 'line text-gray-300' %> text-sm"></i>
+                                                        <% } %>
+                                                        <span class="text-xs text-gray-400 ml-1"><%= cartItem.review.rating %>/5</span>
+                                                    </div>
+                                                    <p class="text-sm text-gray-600 italic">"<%= cartItem.review.comment %>"</p>
+                                                    <p class="text-xs text-gray-400 mt-1">Reviewed on <%= new Date(cartItem.review.reviewedAt).toDateString() %></p>
+                                                </div>
+                                            <% } else { %>
+                                                <div class="mt-3 pt-3 border-t border-zinc-200">
+                                                    <p class="text-xs font-semibold text-gray-600 mb-2">Rate this product</p>
+                                                    <form action="/review/<%= order.orderId %>/<%= cartItem._id %>" method="post">
+                                                        <div class="flex gap-1 mb-2">
+                                                            <% for(let i=1; i<=5; i++){ %>
+                                                                <label class="cursor-pointer">
+                                                                    <input type="radio" name="rating" value="<%= i %>" class="hidden" required>
+                                                                    <i class="ri-star-line text-xl text-gray-300 hover:text-yellow-400 transition star-icon"></i>
+                                                                </label>
+                                                            <% } %>
+                                                        </div>
+                                                        <textarea name="comment" rows="2" required
+                                                            placeholder="Share your experience..."
+                                                            class="w-full border rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:border-blue-300 mb-2"></textarea>
+                                                        <button type="submit" class="px-4 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-full font-medium">Submit Review</button>
+                                                    </form>
+                                                </div>
+                                            <% } %>
+                                        <% } else if(!isDelivered && !isCancelled){ %>
+                                            <p class="text-xs text-gray-400 mt-2 pt-2 border-t border-zinc-200">⏳ Review available after delivery</p>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            <% }) %>
+                            </div>
+                        <% } %>
+
+                        <!-- Order Footer -->
+                        <div class="border-t pt-4 flex flex-col sm:flex-row flex-wrap gap-4 justify-between items-start sm:items-center text-sm">
+                            <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                                <div>
+                                    <p class="text-gray-400 text-xs">Payment</p>
+                                    <p class="font-medium capitalize"><%= order.paymentmode %></p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-xs">Delivery Address</p>
+                                    <p class="font-medium"><%= order.address %></p>
+                                </div>
+                            </div>
+                            <div class="text-left sm:text-right">
+                                <p class="text-gray-400 text-xs"><%= order.paymentmode === 'cod' ? 'Amount Due' : 'Total Paid' %></p>
+                                <p class="font-bold text-base <%= order.paymentmode === 'cod' ? 'text-orange-500' : 'text-green-600' %>">₹ <%= order.bill %></p>
+                                <% if(order.paymentmode === 'cod'){ %>
+                                    <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pay on delivery</span>
+                                <% } else { %>
+                                    <span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Paid</span>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Cancel / Return Buttons -->
+                        <% if(canCancel){ %>
+                            <div class="mt-4 pt-4 border-t">
+                                <form action="/cancel/<%= order.orderId %>" method="post"
+                                      onsubmit="return confirm('Are you sure you want to cancel this order?')">
+                                    <button type="submit"
+                                        class="px-5 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg border border-red-200">
+                                        ❌ Cancel Order
+                                    </button>
+                                </form>
+                                <p class="text-xs text-gray-400 mt-2">⚠️ Orders can only be cancelled before shipping</p>
+                            </div>
+                        <% } %>
+
+                        <% if(canReturn){ %>
+                            <div class="mt-4 pt-4 border-t">
+                                <button onclick="document.getElementById('return-form-<%= order.orderId %>').classList.toggle('hidden')"
+                                    class="px-5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-600 text-sm font-medium rounded-lg border border-purple-200">
+                                    ↩️ Return Order
+                                </button>
+                                <div id="return-form-<%= order.orderId %>" class="hidden mt-3">
+                                    <form action="/return/<%= order.orderId %>" method="post">
+                                        <p class="text-sm font-medium text-gray-600 mb-2">Please select a reason for return:</p>
+                                        <div class="flex flex-col gap-2 mb-3">
+                                            <% ['Wrong item received', 'Damaged or defective product', 'Not as described', 'Changed my mind', 'Size or fit issue', 'Other'].forEach(function(reason){ %>
+                                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                                    <input type="radio" name="returnReason" value="<%= reason %>" required class="accent-purple-500">
+                                                    <%= reason %>
+                                                </label>
+                                            <% }) %>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button type="submit" class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded-lg font-medium">Submit Return</button>
+                                            <button type="button" onclick="document.getElementById('return-form-<%= order.orderId %>').classList.add('hidden')"
+                                                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded-lg">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">Returns accepted within 7 days of delivery</p>
+                            </div>
+                        <% } %>
+
+                    </div>
+                <% }) %>
                 </div>
             <% } %>
         </div>
@@ -183,44 +300,38 @@
 </div>
 
 <script>
-// Star rating interactive highlight
 document.querySelectorAll('form').forEach(function(form) {
-    let labels = form.querySelectorAll('label');
+    let labels = form.querySelectorAll('label:has(input[type="radio"].hidden)');
     labels.forEach(function(label, index) {
         let input = label.querySelector('input[type="radio"]');
-        let icon = label.querySelector('i');
+        if (!input) return;
         input.addEventListener('change', function() {
             labels.forEach(function(l, i) {
                 let ic = l.querySelector('i');
-                if(i <= index) {
-                    ic.className = 'ri-star-fill text-xl text-yellow-400 transition star-icon';
-                } else {
-                    ic.className = 'ri-star-line text-xl text-gray-300 transition star-icon';
-                }
+                if (!ic) return;
+                ic.className = i <= index ? 'ri-star-fill text-xl text-yellow-400 transition star-icon' : 'ri-star-line text-xl text-gray-300 transition star-icon';
             });
         });
         label.addEventListener('mouseenter', function() {
             labels.forEach(function(l, i) {
                 let ic = l.querySelector('i');
-                if(i <= index) {
-                    ic.className = 'ri-star-fill text-xl text-yellow-400 transition star-icon';
-                } else {
-                    ic.className = 'ri-star-line text-xl text-gray-300 transition star-icon';
-                }
+                if (!ic) return;
+                ic.className = i <= index ? 'ri-star-fill text-xl text-yellow-400 transition star-icon' : 'ri-star-line text-xl text-gray-300 transition star-icon';
             });
         });
     });
-    form.querySelector('.flex.gap-1')?.addEventListener('mouseleave', function() {
-        let checked = form.querySelector('input[type="radio"]:checked');
-        labels.forEach(function(l, i) {
-            let ic = l.querySelector('i');
-            if(checked && i <= Array.from(labels).indexOf(checked.parentElement)) {
-                ic.className = 'ri-star-fill text-xl text-yellow-400 transition star-icon';
-            } else {
-                ic.className = 'ri-star-line text-xl text-gray-300 transition star-icon';
-            }
+    let starsDiv = form.querySelector('.flex.gap-1');
+    if (starsDiv) {
+        starsDiv.addEventListener('mouseleave', function() {
+            let checked = form.querySelector('input[type="radio"]:checked');
+            labels.forEach(function(l, i) {
+                let ic = l.querySelector('i');
+                if (!ic) return;
+                let checkedIndex = checked ? Array.from(labels).indexOf(checked.parentElement) : -1;
+                ic.className = i <= checkedIndex ? 'ri-star-fill text-xl text-yellow-400 transition star-icon' : 'ri-star-line text-xl text-gray-300 transition star-icon';
+            });
         });
-    });
+    }
 });
 </script>
 

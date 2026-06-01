@@ -28,7 +28,15 @@ const userSchema = mongoose.Schema({
             address: String,
             paymentmode: String,
             deliveryDate: String,
-            orderedAt: Date
+            orderedAt: Date,
+            status: {
+                type: String,
+                enum: ['ordered', 'shipped', 'delivered', 'cancelled', 'returned'],
+                default: 'ordered'
+            },
+            cancelledAt: Date,
+            returnReason: String,
+            returnedAt: Date
         }
     ],
     contact: Number,
