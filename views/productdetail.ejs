@@ -98,6 +98,50 @@
                 Go to Cart →
             </a>
 
+            <!-- Reviews Section -->
+            <div class="w-full mt-16">
+                <div class="w-full h-[1px] bg-gray-200 mb-8"></div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-6">
+                    Customer Reviews
+                    <% let avgRating = product.reviews && product.reviews.length > 0
+                        ? (product.reviews.reduce((a,r) => a + r.rating, 0) / product.reviews.length).toFixed(1)
+                        : null %>
+                    <% if(avgRating){ %>
+                        <span class="ml-3 text-base font-normal text-gray-500">
+                            <% for(let i=1; i<=5; i++){ %>
+                                <i class="ri-star-<%= i <= Math.round(avgRating) ? 'fill text-yellow-400' : 'line text-gray-300' %>"></i>
+                            <% } %>
+                            <%= avgRating %> (<%= product.reviews.length %> review<%= product.reviews.length !== 1 ? 's' : '' %>)
+                        </span>
+                    <% } %>
+                </h3>
+
+                <% if(!product.reviews || product.reviews.length === 0){ %>
+                    <div class="bg-gray-50 rounded-xl p-8 text-center text-gray-400">
+                        <i class="ri-chat-3-line text-4xl mb-2 block"></i>
+                        <p>No reviews yet. Be the first to review this product!</p>
+                    </div>
+                <% } else { %>
+                    <div class="flex flex-col gap-4">
+                    <% product.reviews.slice().reverse().forEach(function(review){ %>
+                        <div class="bg-gray-50 rounded-xl p-4 flex flex-col gap-1">
+                            <div class="flex items-center justify-between flex-wrap gap-2">
+                                <p class="font-semibold text-sm text-gray-800"><%= review.username %></p>
+                                <p class="text-xs text-gray-400"><%= new Date(review.reviewedAt).toDateString() %></p>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <% for(let i=1; i<=5; i++){ %>
+                                    <i class="ri-star-<%= i <= review.rating ? 'fill text-yellow-400' : 'line text-gray-300' %> text-sm"></i>
+                                <% } %>
+                                <span class="text-xs text-gray-500 ml-1"><%= review.rating %>/5</span>
+                            </div>
+                            <p class="text-sm text-gray-600 italic">"<%= review.comment %>"</p>
+                        </div>
+                    <% }) %>
+                    </div>
+                <% } %>
+            </div>
+
         </div>
     </div>
 </div>

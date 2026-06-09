@@ -155,10 +155,21 @@
                         <% } %>
 
                         <!-- Return info -->
+                        <!-- Return info -->
                         <% if(isReturned){ %>
-                            <div class="bg-purple-50 rounded-lg p-3 mb-4 text-sm text-purple-700">
-                                ↩️ Return requested on <%= order.returnedAt ? new Date(order.returnedAt).toDateString() : 'N/A' %><br>
-                                <span class="font-medium">Reason:</span> <%= order.returnReason %>
+                            <div class="bg-purple-50 rounded-lg p-4 mb-4 text-sm text-purple-700 flex flex-col gap-2">
+                                <p>↩️ <span class="font-semibold">Return requested</span> on <%= order.returnedAt ? new Date(order.returnedAt).toDateString() : 'N/A' %></p>
+                                <p><span class="font-medium">Reason:</span> <%= order.returnReason %></p>
+                                <% if(order.pickupDate){ %>
+                                    <p>🚚 <span class="font-semibold">Pickup scheduled by:</span>
+                                        <span class="text-purple-900 font-bold"><%= new Date(order.pickupDate).toDateString() %></span>
+                                    </p>
+                                <% } %>
+                                <% if(order.refundDate){ %>
+                                    <p>💰 <span class="font-semibold">Refund will be credited by:</span>
+                                        <span class="text-green-700 font-bold"><%= new Date(order.refundDate).toDateString() %></span>
+                                    </p>
+                                <% } %>
                             </div>
                         <% } %>
 

@@ -129,19 +129,42 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
     res.render("orderconfirmation", { username: fullname, orderId, paymentmode, address, city, state, pincode, bill, deliveryDate });
 });
 
-// Submit Review
+// ── Submit Review ─────────────────────────────────────────────────────────────
 router.post("/review/:orderId/:itemId", isLoggedIn, async function(req, res) {
     try {
         let { rating, comment } = req.body;
-        let user = await userModel.findOne({ email: req.user.email });
+        let user = await userModel.findOne({ email: req.user.email })
+            .populate("orders.items.product");
+
         let order = user.orders.find(o => o.orderId === req.params.orderId);
         if (!order) { req.flash("error", "Order not found"); return res.redirect("/account"); }
+
         let deliveryDate = new Date(order.deliveryDate);
-        if (new Date() < deliveryDate) { req.flash("error", "You can only review after delivery"); return res.redirect("/account"); }
+        if (new Date() < deliveryDate) {
+            req.flash("error", "You can only review after delivery");
+            return res.redirect("/account");
+        }
+
         let item = order.items.id(req.params.itemId);
         if (!item) { req.flash("error", "Item not found"); return res.redirect("/account"); }
+
+        // Save review on the user's order item
         item.review = { rating: parseInt(rating), comment: comment.trim(), reviewedAt: new Date() };
         await user.save();
+
+        // Also push the review into the product document so it shows on product detail page
+        await productModel.findByIdAndUpdate(item.product._id, {
+            $push: {
+                reviews: {
+                    user: user._id,
+                    username: user.fullname,
+                    rating: parseInt(rating),
+                    comment: comment.trim(),
+                    reviewedAt: new Date()
+                }
+            }
+        });
+
         req.flash("success", "Review submitted successfully!");
         res.redirect("/account");
     } catch (err) {
@@ -149,7 +172,7 @@ router.post("/review/:orderId/:itemId", isLoggedIn, async function(req, res) {
     }
 });
 
-// Cancel Order — only if status is 'ordered' (not yet shipped)
+// ── Cancel Order ──────────────────────────────────────────────────────────────
 router.post("/cancel/:orderId", isLoggedIn, async function(req, res) {
     try {
         let user = await userModel.findOne({ email: req.user.email });
@@ -169,13 +192,14 @@ router.post("/cancel/:orderId", isLoggedIn, async function(req, res) {
     }
 });
 
-// Return Order — only if delivered
+// ── Return Order ──────────────────────────────────────────────────────────────
 router.post("/return/:orderId", isLoggedIn, async function(req, res) {
     try {
         let { returnReason } = req.body;
         let user = await userModel.findOne({ email: req.user.email });
         let order = user.orders.find(o => o.orderId === req.params.orderId);
         if (!order) { req.flash("error", "Order not found"); return res.redirect("/account"); }
+
         let deliveryDate = new Date(order.deliveryDate);
         if (new Date() < deliveryDate) {
             req.flash("error", "Order not yet delivered");
@@ -185,9 +209,23 @@ router.post("/return/:orderId", isLoggedIn, async function(req, res) {
             req.flash("error", "Return already requested");
             return res.redirect("/account");
         }
+
+        const now = new Date();
+
+        // Pickup: 3 days from today
+        const pickupDate = new Date(now);
+        pickupDate.setDate(pickupDate.getDate() + 3);
+
+        // Refund: 7 days from today
+        const refundDate = new Date(now);
+        refundDate.setDate(refundDate.getDate() + 7);
+
         order.status = 'returned';
         order.returnReason = returnReason.trim();
-        order.returnedAt = new Date();
+        order.returnedAt = now;
+        order.pickupDate = pickupDate;
+        order.refundDate = refundDate;
+
         await user.save();
         req.flash("success", "Return request submitted successfully");
         res.redirect("/account");
@@ -195,10 +233,5 @@ router.post("/return/:orderId", isLoggedIn, async function(req, res) {
         res.status(500).send("Error processing return: " + err.message);
     }
 });
-
-// Auto-update order status based on dates (called on account page load via this route)
-router.get("/logout", isLoggedIn, function(req, res) {
-    res.render("shop")
-})
 
 module.exports = router;
