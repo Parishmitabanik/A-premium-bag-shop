@@ -133,6 +133,8 @@ router.post("/checkout", isLoggedIn, async function(req, res) {
 router.post("/review/:orderId/:itemId", isLoggedIn, async function(req, res) {
     try {
         let { rating, comment } = req.body;
+
+        // Populate first so we have the product ID
         let user = await userModel.findOne({ email: req.user.email })
             .populate("orders.items.product");
 
@@ -148,12 +150,14 @@ router.post("/review/:orderId/:itemId", isLoggedIn, async function(req, res) {
         let item = order.items.id(req.params.itemId);
         if (!item) { req.flash("error", "Item not found"); return res.redirect("/account"); }
 
-        // Save review on the user's order item
+        // ✅ Grab product ID BEFORE save() (populated object becomes ID after save)
+        const productId = item.product._id;
+
         item.review = { rating: parseInt(rating), comment: comment.trim(), reviewedAt: new Date() };
         await user.save();
 
-        // Also push the review into the product document so it shows on product detail page
-        await productModel.findByIdAndUpdate(item.product._id, {
+        // ✅ Now push to product using the captured ID
+        await productModel.findByIdAndUpdate(productId, {
             $push: {
                 reviews: {
                     user: user._id,
